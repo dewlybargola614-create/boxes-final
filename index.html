@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Deal or Disaster">
+<meta name="theme-color" content="#101426">
+<title>Deal or Disaster — Classroom Game</title>
+<style>
+:root{--u:max(.62px,min(.0625vw,.11111vh))}
+html{font-size:calc(16*var(--u))}
+
+:root{
+  --bg:#101426;--panel:#1a2038;--panel2:#222a47;--ink:#f7f8ff;--muted:#aeb8d5;
+  --gold:#ffd166;--pink:#ff5c8a;--cyan:#63e6e2;--green:#65e6a4;--red:#ff6b6b;
+  --line:rgba(255,255,255,.12);--shadow:0 calc(18*var(--u)) calc(50*var(--u)) rgba(0,0,0,.28)
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at top,#24254a 0%,var(--bg) 55%);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+button,input,select{font:inherit}
+button{cursor:pointer;border:0;color:var(--ink);font-weight:800;transition:transform .12s,filter .12s}
+@media (hover:hover){button:hover{filter:brightness(1.1);transform:translateY(calc(-1*var(--u)))}}
+button:active{filter:brightness(.92)}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html{-webkit-text-size-adjust:100%}
+.app{padding-left:max(calc(18*var(--u)),env(safe-area-inset-left));padding-right:max(calc(18*var(--u)),env(safe-area-inset-right));padding-top:max(calc(18*var(--u)),env(safe-area-inset-top))}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:calc(3*var(--u)) solid var(--cyan);outline-offset:calc(3*var(--u))}
+.app{max-width:calc(2200*var(--u));margin:auto;padding:calc(18*var(--u))}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:calc(14*var(--u));margin-bottom:calc(16*var(--u))}
+.brand{display:flex;align-items:center;gap:calc(12*var(--u))}
+.logo{width:calc(48*var(--u));height:calc(48*var(--u));border-radius:calc(15*var(--u));background:linear-gradient(135deg,var(--gold),#ff8f70);display:grid;place-items:center;color:#271a30;font-size:calc(25*var(--u));box-shadow:0 calc(8*var(--u)) calc(25*var(--u)) #ff9f4340}
+h1,h2,h3,p{margin-top:0}
+h1{font-size:clamp(1.35rem,3vw,2rem);margin-bottom:calc(2*var(--u));letter-spacing:-.04em}
+.subtitle{color:var(--muted);font-size:.9rem}
+.top-actions{display:flex;gap:calc(8*var(--u));flex-wrap:wrap}
+.btn{padding:calc(11*var(--u)) calc(15*var(--u));border-radius:calc(12*var(--u));background:var(--panel2);border:calc(1*var(--u)) solid var(--line)}
+.btn.primary{background:var(--gold);color:#21192e}
+.btn.cyan{background:var(--cyan);color:#10242e}
+.btn.danger{background:#57283d;color:#ffdbe5}
+.btn.small{padding:calc(8*var(--u)) calc(10*var(--u));font-size:.85rem}
+.view{display:none}.view.active{display:block}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) calc(290*var(--u));gap:calc(16*var(--u));align-items:start}
+.panel{background:linear-gradient(180deg,rgba(31,39,68,.97),rgba(24,30,52,.97));border:calc(1*var(--u)) solid var(--line);border-radius:calc(22*var(--u));padding:calc(20*var(--u));box-shadow:var(--shadow)}
+.panel h2{font-size:1.1rem;margin-bottom:calc(14*var(--u))}
+.score-title{white-space:nowrap;margin:0!important;font-size:1.35rem!important}
+.score-title span{color:var(--muted);font-weight:700;font-size:.85em;margin-left:calc(6*var(--u))}
+.section-title{display:flex;align-items:center;justify-content:space-between;gap:calc(10*var(--u));margin-bottom:calc(14*var(--u))}
+.pill{font-size:.76rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:calc(999*var(--u));padding:calc(7*var(--u)) calc(10*var(--u));background:#35324f;color:var(--gold)}
+.muted{color:var(--muted);line-height:1.55;font-size:1.05rem}
+.score-list{display:grid;gap:calc(10*var(--u))}
+.score-card{border:calc(1*var(--u)) solid var(--line);border-radius:calc(16*var(--u));padding:calc(13*var(--u));background:rgba(255,255,255,.035);display:grid;grid-template-columns:1fr auto;gap:calc(8*var(--u));align-items:center}
+.score-card.current{border:calc(3*var(--u)) solid var(--tc);box-shadow:0 0 0 calc(4*var(--u)) #ffffff22,0 0 calc(26*var(--u)) #ffffff26;background:#26304f}
+.score-card.current .team-name{font-size:1.15rem}
+.now-badge{display:inline-block;background:var(--tc);color:#141828;font-weight:1000;font-size:.78rem;letter-spacing:.08em;padding:calc(4*var(--u)) calc(9*var(--u));border-radius:calc(999*var(--u))}
+
+.turn-chip{display:inline-flex;align-items:center;gap:calc(10*var(--u));background:var(--tc);color:#141828;font-weight:1000;font-size:clamp(1.05rem,2vw,1.4rem);letter-spacing:.04em;padding:calc(8*var(--u)) calc(18*var(--u));border-radius:calc(999*var(--u));margin-bottom:calc(10*var(--u));box-shadow:0 0 calc(20*var(--u)) #ffffff2a}
+.turn-chip:before{content:"▶"}
+@media (prefers-reduced-motion:reduce){.score-card.current{animation:none}}
+.team-name{font-weight:900;font-size:1rem;overflow-wrap:anywhere}
+.score{font-weight:1000;font-size:1.65rem;color:var(--gold);font-variant-numeric:tabular-nums}
+.team-meta{color:var(--muted);font-size:.78rem;margin-top:calc(4*var(--u))}
+.score-controls{display:flex;gap:calc(5*var(--u));grid-column:1/-1}
+.score-controls button{flex:1;padding:calc(7*var(--u));border-radius:calc(8*var(--u));background:#303956;font-size:.8rem}
+.board-head{display:flex;justify-content:space-between;align-items:center;gap:calc(10*var(--u));margin-bottom:calc(14*var(--u))}
+.board-head h2{margin:0;font-size:1.35rem}
+.question-grid{display:grid;grid-template-columns:1fr;gap:calc(12*var(--u))}
+.q-tile{min-height:calc(160*var(--u));border-radius:calc(18*var(--u));position:relative;overflow:hidden;background:linear-gradient(145deg,#34365f,#232945);border:calc(1*var(--u)) solid #ffffff20;text-align:left;padding:0;display:flex;flex-direction:column;justify-content:space-between}
+.q-tile .tile-num{position:absolute;top:calc(12*var(--u));left:calc(12*var(--u));background:#101426c9;padding:calc(5*var(--u)) calc(9*var(--u));border-radius:calc(8*var(--u));font-size:.75rem}
+.q-tile .tile-icon{font-size:2.8rem;text-align:center;padding:calc(24*var(--u)) calc(10*var(--u)) calc(8*var(--u))}
+.q-tile .tile-label{display:block;text-align:center;padding:calc(12*var(--u));background:#101426a8;font-size:.9rem}
+.q-tile.used{opacity:.38;filter:grayscale(.8);cursor:not-allowed}
+.q-tile.used:after{content:"USED";position:absolute;right:calc(10*var(--u));top:calc(10*var(--u));color:#fff;background:#5a263f;padding:calc(5*var(--u)) calc(7*var(--u));border-radius:calc(6*var(--u));font-size:.7rem;font-weight:1000}
+.draw-card{min-height:clamp(calc(230*var(--u)),38vh,calc(330*var(--u)));border-radius:calc(22*var(--u));background:radial-gradient(circle at 50% 15%,#45477a 0%,#282d50 45%,#1a2038 100%);border:calc(1*var(--u)) solid #ffffff24;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:calc(28*var(--u));gap:calc(12*var(--u))}
+.draw-symbol{font-size:clamp(4rem,8vw,7rem);line-height:1;filter:drop-shadow(0 calc(8*var(--u)) calc(18*var(--u)) #0005)}
+.draw-title{font-size:clamp(1.5rem,3vw,2.5rem);font-weight:1000;letter-spacing:.04em}
+.draw-subtitle{font-size:clamp(1.2rem,2vw,1.65rem);font-weight:800;color:var(--gold)}
+.draw-button{font-size:clamp(1.1rem,2vw,1.5rem);padding:calc(17*var(--u)) calc(28*var(--u));margin-top:calc(8*var(--u))}
+
+.empty{border:calc(1*var(--u)) dashed #66708f;border-radius:calc(18*var(--u));padding:calc(35*var(--u));text-align:center;color:var(--muted);grid-column:1/-1}
+.empty strong{display:block;color:var(--ink);font-size:1.15rem;margin-bottom:calc(8*var(--u))}
+.callout{border-radius:calc(15*var(--u));padding:calc(14*var(--u)) calc(16*var(--u));background:#ffd16612;border:calc(1*var(--u)) solid #ffd16638;color:#ffe5a0;font-size:1.05rem;line-height:1.55}
+.actions-row{display:flex;flex-wrap:wrap;gap:calc(8*var(--u));margin-top:calc(14*var(--u))}
+.kicker{color:var(--cyan);font-size:.78rem;font-weight:1000;text-transform:uppercase;letter-spacing:.12em;margin-bottom:calc(9*var(--u))}
+.stage{min-height:66vh;display:flex;flex-direction:column}
+.stage-top{display:flex;justify-content:space-between;align-items:center;gap:calc(10*var(--u));margin-bottom:calc(16*var(--u))}
+.stage-top h2{margin:0;font-size:clamp(1.25rem,3vw,2rem)}
+.question-frame{flex:1;min-height:calc(260*var(--u));background:#0c1020;border:calc(1*var(--u)) solid #ffffff18;border-radius:calc(18*var(--u));display:flex;align-items:center;justify-content:center;overflow:hidden;padding:calc(12*var(--u))}
+.question-frame img{display:block;max-width:100%;max-height:55vh;object-fit:contain;border-radius:calc(8*var(--u))}
+.q-stage .question-frame{flex:none;height:max(calc(300*var(--u)),calc(100vh - calc(350*var(--u))));padding:calc(8*var(--u));cursor:zoom-in}
+.q-stage .question-frame img{width:100%;height:100%;max-width:none;max-height:none;object-fit:contain}
+.q-tools{display:flex;align-items:center;gap:calc(8*var(--u))}
+.zoom-overlay{position:fixed;inset:0;z-index:40;background:#03050cf2;display:none;align-items:center;justify-content:center;padding:calc(12*var(--u));cursor:zoom-out}
+.zoom-overlay.open{display:flex}
+.zoom-overlay img{width:100%;height:100%;object-fit:contain}
+.zoom-overlay .zoom-hint{position:fixed;top:calc(14*var(--u));right:calc(18*var(--u));color:#aeb8d5;font-weight:800;font-size:.95rem}
+.modal-timer{font-size:clamp(2.5rem,6vw,4rem);font-weight:1000;color:var(--gold);font-variant-numeric:tabular-nums;margin-top:calc(10*var(--u));letter-spacing:0}
+.question-frame .no-image{text-align:center;color:var(--muted);padding:calc(30*var(--u))}
+.question-frame .no-image .big{font-size:4rem;display:block;margin-bottom:calc(10*var(--u))}
+.stage-footer{display:flex;flex-wrap:wrap;gap:calc(9*var(--u));justify-content:center;margin-top:calc(16*var(--u))}
+.stage-footer button{min-width:calc(150*var(--u))}
+.stage-footer .big-answer{min-width:min(calc(260*var(--u)),40vw);padding:calc(16*var(--u)) calc(28*var(--u));font-size:clamp(1.15rem,2vw,1.45rem);border-radius:calc(16*var(--u))}
+.answer-status{padding:calc(12*var(--u)) calc(14*var(--u));border-radius:calc(12*var(--u));margin-top:calc(12*var(--u));text-align:center;font-weight:800}
+.answer-status.good{background:#65e6a41c;color:#8ff2bc;border:calc(1*var(--u)) solid #65e6a44d}
+.answer-status.bad{background:#ff6b6b1a;color:#ffb0b0;border:calc(1*var(--u)) solid #ff6b6b4d}
+.choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(12*var(--u));margin-top:calc(18*var(--u))}
+.choice{min-height:calc(115*var(--u));border-radius:calc(18*var(--u));padding:calc(18*var(--u));font-size:clamp(1rem,2vw,1.25rem)}
+.choice.bank{background:linear-gradient(135deg,#f9cf65,#ffad66);color:#271b2b}
+.choice.risk{background:linear-gradient(135deg,#8b5cf6,#e05bb7);color:white}
+.choice .sub{display:block;font-size:clamp(1rem,1.7vw,1.25rem);font-weight:700;line-height:1.45;opacity:1;margin-top:calc(9*var(--u))}
+.box-grid{display:grid;grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));gap:clamp(calc(8*var(--u)),1.1vw,calc(14*var(--u)));margin:calc(8*var(--u)) auto 0;width:100%;max-width:min(100%,calc((100vh - calc(350*var(--u))) * var(--cols,4) / var(--rows,3)));align-content:start}
+.mystery{position:relative;aspect-ratio:1/1;width:100%;padding:0;border-radius:clamp(calc(10*var(--u)),1.2vw,calc(16*var(--u)));border:calc(2*var(--u)) solid #ffffff45;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4%;overflow:hidden;color:#fff;text-shadow:0 calc(2*var(--u)) calc(4*var(--u)) #0007;box-shadow:inset 0 calc(-8*var(--u)) 0 #0000002e,0 calc(6*var(--u)) calc(16*var(--u)) #0000003d;container-type:inline-size}
+.mystery::before{content:"";position:absolute;left:0;right:0;top:0;height:22%;background:#ffffff30;border-bottom:calc(2*var(--u)) solid #00000024}
+.mystery::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:11%;transform:translateX(-50%);background:#ffffff33}
+.mystery .num{position:relative;z-index:1;font-size:2rem;font-size:40cqw;font-weight:1000;line-height:1;font-variant-numeric:tabular-nums}
+.mystery .lbl{position:relative;z-index:1;font-size:.75rem;font-size:11cqw;font-weight:900;letter-spacing:.12em}
+.mystery.used{background:#232a44 !important;border:calc(2*var(--u)) dashed #ffffff2a;box-shadow:none;color:#7e89ac;text-shadow:none;cursor:not-allowed}
+.mystery.used::before,.mystery.used::after{display:none}
+.mystery:disabled:hover{transform:none;filter:none}
+.reveal{border-radius:calc(20*var(--u));text-align:center;padding:calc(30*var(--u)) calc(18*var(--u));background:linear-gradient(135deg,#29294d,#1b2139);border:calc(1*var(--u)) solid #ffffff20;margin-top:calc(14*var(--u))}
+.reveal .emoji{font-size:4.5rem}
+.reveal h2{font-size:clamp(1.5rem,4vw,2.5rem);margin:calc(10*var(--u)) 0}
+.reveal p{color:#f0f3ff;font-size:clamp(1.15rem,1.9vw,1.55rem);font-weight:650;line-height:1.55;white-space:pre-line;max-width:calc(900*var(--u));margin:calc(16*var(--u)) auto 0;text-wrap:pretty}.reveal p::first-line{color:#fff;font-weight:800}.reveal{padding:clamp(calc(22*var(--u)),3vw,calc(36*var(--u))) calc(20*var(--u))}.reveal .emoji{font-size:clamp(3.2rem,5vw,4.5rem)}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(14*var(--u))}
+.field{display:flex;flex-direction:column;gap:calc(7*var(--u))}
+.field label{font-size:.86rem;color:var(--muted);font-weight:800}
+.field input,.field select{width:100%;padding:calc(12*var(--u));border-radius:calc(11*var(--u));border:calc(1*var(--u)) solid var(--line);background:#101629;color:var(--ink)}
+.field input[type=file]{padding:calc(9*var(--u))}
+.setup-teams{display:grid;gap:calc(9*var(--u));margin-top:calc(12*var(--u))}
+.setup-team{display:grid;grid-template-columns:1fr auto;gap:calc(8*var(--u))}
+.setup-team input{min-width:0}
+.upload-list{display:grid;gap:calc(9*var(--u));margin-top:calc(14*var(--u))}
+.upload-item{display:grid;grid-template-columns:calc(58*var(--u)) minmax(0,1fr) auto;gap:calc(10*var(--u));align-items:center;padding:calc(9*var(--u));border:calc(1*var(--u)) solid var(--line);border-radius:calc(12*var(--u));background:#ffffff05}
+.thumb{width:calc(58*var(--u));height:calc(48*var(--u));border-radius:calc(8*var(--u));background:#101629;display:grid;place-items:center;overflow:hidden;color:var(--muted)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.upload-item .file-name{font-size:.86rem;font-weight:800;overflow-wrap:anywhere}
+.upload-item .file-sub{font-size:.75rem;color:var(--muted);margin-top:calc(3*var(--u))}
+.upload-item button{background:#4b2940;border-radius:calc(8*var(--u));padding:calc(8*var(--u))}
+.note{font-size:.83rem;color:var(--muted);line-height:1.5}
+.modal-backdrop{position:fixed;inset:0;background:#050711d9;z-index:20;display:none;align-items:center;justify-content:center;padding:calc(16*var(--u))}
+.modal-backdrop.open{display:flex}
+.modal{max-width:calc(840*var(--u));width:100%;max-height:calc(100vh - calc(32*var(--u)));overflow:auto;background:#1a2038;border:calc(1*var(--u)) solid var(--line);border-radius:calc(26*var(--u));padding:clamp(calc(22*var(--u)),3vw,calc(38*var(--u)));box-shadow:var(--shadow);text-align:center}
+.modal h2{font-size:clamp(1.6rem,3.2vw,2.5rem);line-height:1.2;margin-bottom:calc(16*var(--u))}
+.modal p{color:#f0f3ff;font-size:clamp(1.15rem,2vw,1.55rem);font-weight:650;line-height:1.6;white-space:pre-line;max-width:calc(680*var(--u));margin:0 auto;text-wrap:pretty}
+.modal.wide{max-width:min(calc(1400*var(--u)),96vw)}
+.modal-media:empty{display:none}
+.modal-media{background:#0c1020;border:calc(1*var(--u)) solid #ffffff18;border-radius:calc(16*var(--u));padding:calc(8*var(--u));margin:calc(4*var(--u)) 0 calc(6*var(--u))}
+.modal-media img{display:block;width:100%;height:min(62vh,calc(700*var(--u)));object-fit:contain;border-radius:calc(8*var(--u))}
+.modal-prompt{color:var(--cyan);font-size:clamp(.9rem,1.4vw,1.1rem);font-weight:1000;letter-spacing:.1em;text-transform:uppercase;margin-top:calc(24*var(--u))}
+.modal-prompt:empty{display:none}
+.modal-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(calc(190*var(--u)),1fr));gap:calc(12*var(--u));margin-top:calc(16*var(--u))}
+.modal-actions .btn{padding:calc(16*var(--u)) calc(18*var(--u));font-size:clamp(1.05rem,1.8vw,1.35rem);border-radius:calc(14*var(--u))}
+.modal-actions .btn.ghost{grid-column:1/-1;background:transparent;color:var(--muted);font-size:1rem;padding:calc(10*var(--u))}
+.btn.team-btn{display:flex;align-items:center;justify-content:center;gap:calc(12*var(--u));background:#262e4f;border:calc(3*var(--u)) solid var(--team);box-shadow:inset calc(6*var(--u)) 0 0 var(--team)}
+.team-btn .swatch{width:calc(22*var(--u));height:calc(22*var(--u));border-radius:50%;background:var(--team);flex:none;box-shadow:0 0 0 calc(3*var(--u)) #ffffff26}
+.team-btn .tinfo{display:flex;flex-direction:column;align-items:flex-start;text-align:left;line-height:1.2}
+.team-btn .tscore{font-size:.78em;color:var(--muted);font-weight:800;margin-top:calc(3*var(--u))}
+.layout.single{grid-template-columns:1fr}
+.toast{position:fixed;top:calc(18*var(--u));left:50%;transform:translateX(-50%);z-index:50;background:#f7f8ff;color:#15182a;padding:calc(12*var(--u)) calc(18*var(--u));border-radius:calc(12*var(--u));font-weight:900;box-shadow:var(--shadow);display:none}
+.toast.show{display:block}
+.footer-note{text-align:center;color:#7e89ac;font-size:.75rem;margin:calc(18*var(--u)) 0 calc(4*var(--u))}
+/* ---- box opening ---- */
+.box-grid.busy .mystery{pointer-events:none}
+.mystery.opening{animation:boxShake .11s linear infinite;z-index:2;filter:brightness(1.18)}
+@keyframes boxShake{0%{transform:rotate(-5deg) scale(1.08)}50%{transform:rotate(5deg) scale(1.12)}100%{transform:rotate(-5deg) scale(1.08)}}
+/* ---- podium (end screen) ---- */
+.end-stage{align-items:center;text-align:center;justify-content:flex-start;cursor:default}
+.panel h2.end-title{font-size:clamp(2.2rem,5.5vw,4rem);margin:0 0 calc(4*var(--u));min-height:1.3em;line-height:1.15}
+.pod-col:not(.shown) .pod-bar{padding:0;box-shadow:none}
+.end-title.pop{animation:titlePop .7s cubic-bezier(.2,1.6,.4,1)}
+@keyframes titlePop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+.end-hint{color:#7e89ac;font-size:.85rem;margin:0 0 calc(8*var(--u));min-height:1.2em}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:clamp(calc(10*var(--u)),2vw,calc(26*var(--u)));height:min(calc(100vh - calc(430*var(--u))),calc(480*var(--u)));min-height:calc(220*var(--u));width:min(calc(920*var(--u)),100%);margin:calc(8*var(--u)) auto 0;border-bottom:calc(4*var(--u)) solid #ffffff22}
+.pod-col{flex:1;max-width:calc(270*var(--u));height:100%;display:flex;flex-direction:column;justify-content:flex-end}
+.pod-info{opacity:0;transform:translateY(calc(24*var(--u))) scale(.7);transition:opacity .45s .55s,transform .55s .55s cubic-bezier(.2,1.5,.4,1);margin-bottom:calc(12*var(--u))}
+.pod-col.shown .pod-info{opacity:1;transform:none}
+.pod-medal{font-size:clamp(2.2rem,4vw,3rem);line-height:1}
+.rank-1 .pod-medal{font-size:clamp(3rem,6vw,4.4rem)}
+.pod-name{font-weight:1000;font-size:clamp(1.15rem,2.4vw,2rem);overflow-wrap:anywhere;margin-top:calc(6*var(--u))}
+.pod-score{color:var(--gold);font-weight:1000;font-size:clamp(1.1rem,2vw,1.6rem);font-variant-numeric:tabular-nums}
+.pod-bar{height:0;border-radius:calc(18*var(--u)) calc(18*var(--u)) 0 0;background:var(--tc);box-shadow:0 0 calc(26*var(--u)) #ffffff1f;display:flex;justify-content:center;align-items:flex-start;padding-top:calc(10*var(--u));overflow:hidden;font-size:clamp(2.2rem,5vw,4.2rem);font-weight:1000;color:#14182899;transition:height .9s cubic-bezier(.2,1.25,.4,1)}
+.rank-1.shown .pod-bar{height:62%}.rank-2.shown .pod-bar{height:44%}.rank-3.shown .pod-bar{height:30%}.rank-4.shown .pod-bar,.rank-5.shown .pod-bar{height:20%}
+.rank-1.shown .pod-medal{animation:medalBounce 1.2s .9s ease-in-out infinite}
+@keyframes medalBounce{50%{transform:translateY(calc(-8*var(--u))) rotate(-6deg)}}
+.rest-list{display:flex;flex-wrap:wrap;justify-content:center;gap:calc(10*var(--u));margin:calc(18*var(--u)) auto 0;width:min(calc(920*var(--u)),100%);opacity:0;transition:opacity .6s}
+.rest-list.shown,.end-actions.shown{opacity:1}
+.rest-item{display:flex;align-items:center;gap:calc(10*var(--u));padding:calc(10*var(--u)) calc(16*var(--u));border-radius:calc(14*var(--u));background:#ffffff08;border:calc(1*var(--u)) solid var(--line);border-left:calc(6*var(--u)) solid var(--tc);font-weight:900}
+.rest-item .r{color:var(--muted)}.rest-item .sc{color:var(--gold)}
+.end-actions{justify-content:center;opacity:0;transition:opacity .6s;margin-top:calc(20*var(--u))}
+.end-actions:not(.shown){pointer-events:none}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+/* Newer browsers get team-coloured glows; older school browsers keep the plain version above */
+@supports (color:color-mix(in srgb,red 50%,blue)){
+ .score-card.current{background:color-mix(in srgb,var(--tc) 24%,#1a2038);box-shadow:0 0 0 calc(4*var(--u)) color-mix(in srgb,var(--tc) 28%,transparent),0 0 calc(30*var(--u)) color-mix(in srgb,var(--tc) 50%,transparent);animation:turnGlow 1.8s ease-in-out infinite}
+ @keyframes turnGlow{50%{box-shadow:0 0 0 calc(7*var(--u)) color-mix(in srgb,var(--tc) 18%,transparent),0 0 calc(42*var(--u)) color-mix(in srgb,var(--tc) 65%,transparent)}}
+ .turn-chip{box-shadow:0 0 calc(24*var(--u)) color-mix(in srgb,var(--tc) 55%,transparent)}
+ .pod-bar{background:linear-gradient(180deg,var(--tc),color-mix(in srgb,var(--tc) 45%,#101426));box-shadow:0 0 calc(30*var(--u)) color-mix(in srgb,var(--tc) 40%,transparent)}
+ @media (prefers-reduced-motion:reduce){.score-card.current{animation:none}}
+}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.score-list{grid-template-columns:repeat(2,minmax(0,1fr))}.stage{min-height:unset}.question-frame img{max-height:48vh}.q-stage .question-frame{height:60vh}}
+@media(max-width:600px){.app{padding:calc(10*var(--u))}.topbar{align-items:flex-start;flex-direction:column}.question-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.q-tile{min-height:calc(130*var(--u))}.score-list{grid-template-columns:1fr 1fr}.panel{padding:calc(14*var(--u))}.box-grid{gap:calc(6*var(--u));max-width:100%}.mystery{border-radius:calc(9*var(--u))}.modal-actions{grid-template-columns:1fr}.choice-grid,.form-grid{grid-template-columns:1fr}.stage-footer button{flex:1}.question-frame{min-height:calc(230*var(--u))}}
+@media print{body{background:#fff;color:#000}.topbar,.top-actions{display:none}}
+
+/* ---- fill the whole screen (TV / full screen) ---- */
+html,body{height:100%}
+.app{max-width:none;min-height:100vh;display:flex;flex-direction:column}
+.view.active{display:flex;flex-direction:column;flex:1;min-height:0}
+.view.active>.layout{flex:1;align-items:stretch;min-height:0}
+.layout>.panel{display:flex;flex-direction:column;min-height:0}
+#boardView .question-grid{flex:1;display:flex;flex-direction:column}
+#boardView .draw-card{flex:1;min-height:calc(230*var(--u))}
+.stage{flex:1;min-height:0}
+.q-stage .question-frame{flex:1 1 0;height:auto;min-height:calc(260*var(--u));position:relative}
+.q-stage .question-frame img{position:absolute;left:calc(8*var(--u));top:calc(8*var(--u));width:calc(100% - 16*var(--u));height:calc(100% - 16*var(--u))}
+#endView .end-stage{justify-content:center}
+/* decision screen: two big choice tiles fill the space */
+#decisionView .choice-grid{flex:1;min-height:calc(260*var(--u));margin-top:calc(24*var(--u))}
+#decisionView .choice{min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(18*var(--u));padding:calc(30*var(--u));font-size:calc(50*var(--u));border-radius:calc(28*var(--u))}
+#decisionView .choice .sub{font-size:calc(28*var(--u));white-space:pre-line;margin-top:0;max-width:calc(620*var(--u))}
+#decisionView .choice .big-emoji{font-size:calc(96*var(--u));line-height:1}
+/* result screen: card fills the space, bigger text */
+#revealView .reveal{flex:1 1 0;min-height:0;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#revealView .reveal .emoji{font-size:calc(104*var(--u))}
+#revealView .reveal h2{font-size:calc(62*var(--u))}
+#revealView .reveal p{font-size:calc(34*var(--u));max-width:calc(1100*var(--u))}
+@media(max-width:900px){.view.active>.layout{align-items:start}.layout>.panel{min-height:unset}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">✦</div>
+      <div><h1>DEAL OR DISASTER</h1><div class="subtitle">A classroom mystery game show</div></div>
+    </div>
+    <div class="top-actions">
+      <button class="btn" id="soundBtn" title="Switch between music + sounds, sounds only, and mute">🔊 Music + sounds</button>
+      <button class="btn" id="fullscreenBtn">⛶ Full screen</button>
+      <button class="btn" id="undoBtn" title="Undo the last score change">↶ Undo</button>
+      <button class="btn" id="setupBtn">⚙ Game setup</button>
+    </div>
+  </header>
+
+  <section id="boardView" class="view active">
+    <div class="layout">
+      <main class="panel">
+        <div class="board-head">
+          <div><div class="kicker">Choose your fate</div><h2>Question board 題目選單</h2></div>
+          <span class="pill" id="roundPill">ROUND 1</span>
+        </div>
+        <div class="callout" style="margin-bottom:calc(15*var(--u))">Answer the question first. If your team gets it right, take the guaranteed points or risk opening a mystery box.</div>
+        <div class="question-grid" id="questionGrid"></div>
+        <div class="actions-row">
+          <button class="btn primary" id="nextTeamBtn">Next team →</button>
+          <button class="btn" id="endGameBtn">🏆 End game</button>
+        </div>
+      </main>
+      <aside class="panel">
+        <div class="section-title"><h2 class="score-title">Scoreboard <span>計分板</span></h2></div>
+        <div class="score-list" id="scoreList"></div>
+        
+      </aside>
+    </div>
+  </section>
+
+  <section id="questionView" class="view">
+    <div class="layout single">
+      <main class="panel stage q-stage">
+        <div class="stage-top"><div><div class="turn-chip" id="activeTeamKicker">TEAM 1'S TURN</div><h2 id="questionTitle">Question 1</h2></div><div class="q-tools"><button class="btn small" id="zoomBtn">🔍 Zoom</button><button class="btn small" id="backBoardBtn" title="Go back without scoring">← Board</button></div></div>
+        <div class="question-frame" id="questionFrame"></div>
+        <div class="answer-status" id="answerStatus" style="display:none"></div>
+        <div class="stage-footer">
+          <button class="btn primary big-answer" id="correctBtn">✓ Correct</button>
+          <button class="btn danger big-answer" id="incorrectBtn">✕ Incorrect</button>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section id="decisionView" class="view">
+    <div class="layout">
+      <main class="panel stage">
+        <div class="kicker">The answer is correct!</div>
+        <h2 style="font-size:clamp(1.8rem,4vw,3rem);margin-bottom:calc(6*var(--u))" id="decisionHeading">Team 1 earned 10 points!</h2>
+        <p class="muted">Now the team must decide together. The representative makes the final touch.</p>
+        <div class="choice-grid">
+          <button class="choice bank" id="bankBtn"><span class="big-emoji">🤝</span>TAKE THE DEAL<span class="sub" id="bankSub">Bank +10 points. Safe choice.</span></button>
+          <button class="choice risk" id="riskBtn"><span class="big-emoji">🎲</span>GO FOR MORE<span class="sub">Choose a hidden box. The result is final.
+選擇一個神祕箱；開箱後結果不能更改。</span></button>
+        </div>
+        <div class="callout" style="margin-top:calc(18*var(--u))">Team decision: allow about 10 seconds to discuss. Once a choice is made, no rerolls.</div>
+      </main>
+      <aside class="panel"><div class="kicker">Scoreboard</div><div id="decisionScores" class="score-list"></div></aside>
+    </div>
+  </section>
+
+  <section id="boxView" class="view">
+    <div class="layout">
+      <main class="panel stage">
+        <div class="stage-top"><div><div class="kicker">Choose one box</div><h2>What's your fate?</h2></div><span class="pill" id="boxesLeft">CHOOSE A BOX</span></div>
+        <p class="muted">One touch. One reveal. Opened boxes can’t be picked again.</p>
+        <div class="box-grid" id="boxGrid"></div>
+        <div class="actions-row"><button class="btn" id="cancelRiskBtn">← Change to Take the Deal</button></div>
+      </main>
+      <aside class="panel"><div class="kicker">Active team</div><h2 id="boxTeamName">Team 1</h2><div id="boxScores" class="score-list"></div></aside>
+    </div>
+  </section>
+
+  <section id="revealView" class="view">
+    <div class="layout">
+      <main class="panel stage">
+        <div class="stage-top"><div><div class="kicker">Mystery revealed</div><h2 id="revealTeam">Team 1</h2></div><span class="pill">FINAL RESULT</span></div>
+        <div class="reveal"><div class="emoji" id="revealEmoji">🎉</div><h2 id="revealTitle">JACKPOT!</h2><p id="revealDescription">Your team gained 20 bonus points. 你們隊伍獲得額外 20 分。</p></div>
+        <div class="stage-footer"><button class="btn primary" id="continueBtn">Next team →</button><button class="btn" id="returnBoardBtn">Return to board</button></div>
+      </main>
+      <aside class="panel"><div class="kicker">Updated scores</div><div id="revealScores" class="score-list"></div></aside>
+    </div>
+  </section>
+
+  <section id="endView" class="view">
+    <div class="layout single">
+      <main class="panel stage end-stage" id="endStage">
+        <div class="kicker">Game complete</div>
+        <h2 class="end-title" id="winnerTitle">And the winner is…</h2>
+        <p class="end-hint" id="endHint"></p>
+        <div class="podium" id="podium"></div>
+        <div class="rest-list" id="finalScores"></div>
+        <div class="actions-row end-actions" id="endActions"><button class="btn primary" id="playAgainBtn">↻ New game</button><button class="btn" id="endBoardBtn">Back to board</button></div>
+      </main>
+      
+    </div>
+  </section>
+
+  <section id="setupView" class="view">
+    <div class="layout">
+      <main class="panel">
+        <div class="section-title"><h2>Game setup</h2><button class="btn small" id="closeSetupBtn">✕ Close</button></div>
+        <div class="form-grid">
+          <div class="field"><label for="gameName">Game title</label><input id="gameName" value="DEAL OR DISASTER"></div>
+          <div class="field"><label for="pointsInput">Correct answer reward</label><input id="pointsInput" type="number" min="1" max="1000" value="10"></div>
+          <div class="field"><label for="stealInput">Steal reward</label><input id="stealInput" type="number" min="0" max="1000" value="5"></div>
+          <div class="field"><label for="boxCountInput">Mystery boxes</label><select id="boxCountInput"><option value="8">8 boxes</option><option value="10">10 boxes</option><option value="12">12 boxes</option><option value="16">16 boxes</option><option value="20" selected>20 boxes</option><option value="25">25 boxes</option></select></div>
+        </div>
+        <div class="section-title" style="margin-top:calc(24*var(--u));margin-bottom:calc(8*var(--u))"><h2 style="margin:0">Teams</h2><div class="actions-row" style="margin:0"><button class="btn small" id="addTeamBtn">＋ Add team</button><button class="btn small" id="removeTeamBtn">− Remove team</button></div></div>
+        <p class="note">Use 2–8 teams. Add or remove teams here before saving.</p><div class="setup-teams" id="teamInputs"></div>
+        <h2 style="margin-top:calc(24*var(--u))">Upload question pictures</h2>
+        <p class="note">Upload screenshots or image files (PNG, JPG, WEBP). Each image becomes a question. The student board will draw questions randomly and will not show image filenames. Questions, teams and scores are saved on this device, so they come back if the page reloads. They are never uploaded anywhere. Use "Remove all questions" to clear them for a different class. Use images sized for a widescreen screen when possible.</p>
+        <div class="field"><label for="questionUpload">Choose one or more images</label><input id="questionUpload" type="file" accept="image/*" multiple></div>
+        <div class="upload-list" id="uploadList"></div>
+        <div class="actions-row">
+          <button class="btn primary" id="saveSetupBtn">Save settings</button>
+          <button class="btn" id="clearQuestionsBtn">Remove all questions</button>
+          <button class="btn danger" id="resetScoresBtn">Reset scores & used boxes</button>
+        </div>
+        <p class="note" style="margin-top:calc(14*var(--u))">Tip: upload images in the order you want them to appear. To replace an image, remove it and upload the new one. Question images are not edited by this game.</p>
+      </main>
+      <aside class="panel"><div class="kicker">Design notes</div><h2>Built for the classroom TV</h2><ul class="note" style="padding-left:calc(18*var(--u));line-height:1.8"><li>Large touch targets</li><li>One question per screen</li><li>Persistent score panel</li><li>Teacher-controlled answer checking</li><li>Undo last score change</li><li>Used boxes stay unavailable</li><li>Fullscreen mode</li><li>No internet or account required</li></ul><div class="callout">Before class: upload the question screenshots, set team names, and test one turn.</div></aside>
+      </div>
+  </section>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true">
+  <div class="modal"><h2 id="modalTitle">Confirm</h2><p id="modalText"></p><div class="modal-media" id="modalMedia"></div><div class="modal-prompt" id="modalPrompt"></div><div class="modal-actions" id="modalActions"></div></div>
+</div>
+<div class="zoom-overlay" id="zoomOverlay"><span class="zoom-hint">Tap anywhere to close</span><img id="zoomImg" alt="Question, enlarged"></div>
+<canvas id="confetti"></canvas>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const TEAM_COLORS = ["#63b8ff","#ff79a8","#65e6a4","#ffd166","#b18cff","#ff9966","#52d6e8","#f7a8a8"];
+let teams = [1,2,3,4].map((n,i)=>({name:`TEAM ${n}`,score:0,shield:false,color:TEAM_COLORS[i]}));
+let questions = [];
+let boxes = [];
+let activeTeam = 0;
+let activeQuestion = null;
+let earnedThisTurn = 0;
+let lastAction = null;
+let revealedAnswer = false;
+let gameTitle = "DEAL OR DISASTER";
+let correctPoints = 10;
+let stealPoints = 5;
+let usedTurns = 0;
+let pendingSteal = false;
+let previousView = "boardView";
+
+const cardPool = [
+ {type:"jackpot",title:"JACKPOT！頭獎！",emoji:"💰",desc:"Gain 20 bonus points.\n獲得額外 20 分。",apply:(team)=>{team.score+=20;}},
+ {type:"jackpot",title:"JACKPOT！頭獎！",emoji:"💰",desc:"Gain 20 bonus points.\n獲得額外 20 分。",apply:(team)=>{team.score+=20;}},
+ {type:"double",title:"DOUBLE DEAL！雙倍獎勵！",emoji:"✨",desc:"Gain an extra reward equal to your correct-answer points.\n額外獲得與本題答對分數相同的點數。",apply:(team)=>{team.score+=correctPoints;}},
+ {type:"thief",title:"POINT THIEF！偷分！",emoji:"🦹",desc:"Choose another team and steal 10 points.\n選擇另一隊，奪取 10 分。",target:true,apply:(team,target)=>{const amount=Math.min(10,target.score);target.score-=amount;team.score+=amount;return amount?`Stole ${amount} points from ${target.name}.`:`${target.name} had no points to steal.\n${target.name} 隊目前沒有可被奪取的分數。`;}},
+ {type:"thief",title:"POINT THIEF！偷分！",emoji:"🦹",desc:"Choose another team and steal 10 points.\n選擇另一隊，奪取 10 分。",target:true,apply:(team,target)=>{const amount=Math.min(10,target.score);target.score-=amount;team.score+=amount;return amount?`Stole ${amount} points from ${target.name}.`:`${target.name} had no points to steal.\n${target.name} 隊目前沒有可被奪取的分數。`;}},
+ {type:"shield",title:"SHIELD！護盾！",emoji:"🛡️",desc:"Gain one shield to block a future point-stealing attack.\n獲得一個護盾，可抵擋一次之後的偷分攻擊。",apply:(team)=>{team.shield=true;}},
+ {type:"swap",title:"SCORE SWAP！交換總分！",emoji:"🔁",desc:"Swap scores with another team.\n與另一隊交換目前的總分。",target:true,apply:(team,target)=>{const temp=team.score;team.score=target.score;target.score=temp;return `Swapped scores with ${target.name}.\n已與 ${target.name} 隊交換總分。`;}},
+ {type:"bad",title:"BAD DEAL！糟糕交易！",emoji:"💥",desc:"Lose the bonus from this turn. Your previously earned points are safe.\n失去本回合答對題目所獲得的分數；之前累積的分數不受影響。",apply:(team)=>{team.score-=correctPoints;}},
+ {type:"bad",title:"BAD DEAL！糟糕交易！",emoji:"💥",desc:"Lose the bonus from this turn. Your previously earned points are safe.\n失去本回合答對題目所獲得的分數；之前累積的分數不受影響。",apply:(team)=>{team.score-=correctPoints;}},
+ {type:"blank",title:"EMPTY BOX！空箱！",emoji:"🫥",desc:"No bonus this time. You keep the points you earned for the answer.\n這次沒有額外獎勵，但仍保留答對題目獲得的分數。",apply:()=>{}},
+ {type:"bonussteal",title:"BONUS + PICKPOCKET！獎勵加偷分！",emoji:"🧤",desc:"Gain 5 bonus points, then steal 3 points from another team.\n額外獲得 5 分，再從另一隊奪取 3 分。",target:true,apply:(team,target)=>{const amount=Math.min(3,target.score);target.score-=amount;team.score+=5+amount;return `+5 bonus and ${amount} points taken from ${target.name}.`; }},
+ {type:"bonussteal",title:"BONUS + PICKPOCKET！獎勵加偷分！",emoji:"🧤",desc:"Gain 5 bonus points, then steal 3 points from another team.\n額外獲得 5 分，再從另一隊奪取 3 分。",target:true,apply:(team,target)=>{const amount=Math.min(3,target.score);target.score-=amount;team.score+=5+amount;return `+5 bonus and ${amount} points taken from ${target.name}.`; }},
+ {type:"royal",title:"ROYAL BONUS！皇家獎勵！",emoji:"👑",desc:"Gain 15 bonus points.\n獲得額外 15 分。",apply:(team)=>{team.score+=15;}},
+ {type:"duel",title:"DUEL！對決！",emoji:"✊",desc:"Choose a team. One student from each team plays rock-paper-scissors. The winner's team gets 10 points.\n選一隊。兩隊各派一人猜拳，贏的隊伍得 10 分。",target:true},
+ {type:"duel",title:"DUEL！對決！",emoji:"✊",desc:"Choose a team. One student from each team plays rock-paper-scissors. The winner's team gets 10 points.\n選一隊。兩隊各派一人猜拳，贏的隊伍得 10 分。",target:true},
+ {type:"challenge",title:"CHALLENGE！挑戰！",emoji:"🎯",desc:"Pick a team to answer a bonus question.\nCorrect: they get +5. Wrong: you get +5.\n選一隊回答加分題。\n答對：他們 +5 分。答錯：你們 +5 分。",target:true},
+ {type:"challenge",title:"CHALLENGE！挑戰！",emoji:"🎯",desc:"Pick a team to answer a bonus question.\nCorrect: they get +5. Wrong: you get +5.\n選一隊回答加分題。\n答對：他們 +5 分。答錯：你們 +5 分。",target:true},
+ {type:"alliance",title:"ALLIANCE！結盟！",emoji:"🤝",desc:"Choose a partner team. Both teams get 8 points.\n選一隊當夥伴，兩隊各得 8 分。",target:true},
+ {type:"party",title:"PARTY TIME！派對時間！",emoji:"🎉",desc:"Every team gets 5 points!\n每一隊都得 5 分！"},
+ {type:"quake",title:"EARTHQUAKE！地震！",emoji:"🌋",desc:"Every other team loses 5 points. A shield blocks it.\n其他每一隊都扣 5 分。有護盾的隊伍不受影響。"}
+];
+let remainingCards = [];
+
+/* ================= SOUND =================
+   Everything is synthesized with the Web Audio API, so the game still works offline
+   and needs no sound files. Three modes: all (music + effects), sfx (effects only), off. */
+const Sound=(()=>{
+ let ctx=null,master,sfxBus,musicBus,noiseBuf,mode="all",lastFx=0,desired=null;
+ try{const m=localStorage.getItem("dod-sound");if(m==="all"||m==="sfx"||m==="off")mode=m;}catch(e){}
+ const N=m=>440*Math.pow(2,(m-69)/12);
+ function init(){
+  if(ctx){if(ctx.state==="suspended")ctx.resume();return ctx;}
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
+  try{if(navigator.audioSession)navigator.audioSession.type="playback";}catch(e){} // iPad/iPhone: don't go silent with the mute switch
+  try{ctx=new AC();}catch(e){return null;}
+  master=ctx.createGain();master.gain.value=.9;
+  const comp=ctx.createDynamicsCompressor();master.connect(comp);comp.connect(ctx.destination);
+  sfxBus=ctx.createGain();musicBus=ctx.createGain();sfxBus.connect(master);musicBus.connect(master);
+  noiseBuf=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate);
+  const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  levels(true);
+  if(desired){const w=desired;desired=null;music(w);}
+  return ctx;
+ }
+ function levels(instant){
+  if(!ctx)return;const t=ctx.currentTime,k=instant?.001:.08;
+  sfxBus.gain.setTargetAtTime(mode==="off"?0:.75,t,k);
+  musicBus.gain.setTargetAtTime(mode==="all"?.17:0,t,k);
+ }
+ function tone(f,at,dur,o={}){
+  const {type="sine",vol=.25,attack=.005,to=null,bus=sfxBus,lp=null,vib=0}=o;
+  const t=ctx.currentTime+Math.max(0,at);
+  const osc=ctx.createOscillator(),g=ctx.createGain();
+  osc.type=type;osc.frequency.setValueAtTime(f,t);if(to)osc.frequency.exponentialRampToValueAtTime(to,t+dur);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+attack);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  let node=osc;
+  if(lp){const fl=ctx.createBiquadFilter();fl.type="lowpass";fl.frequency.value=lp;osc.connect(fl);node=fl;}
+  if(vib){const l=ctx.createOscillator(),lg=ctx.createGain();l.frequency.value=6;lg.gain.value=vib;l.connect(lg);lg.connect(osc.frequency);l.start(t);l.stop(t+dur+.05);}
+  node.connect(g);g.connect(bus);osc.start(t);osc.stop(t+dur+.05);
+ }
+ function noise(at,dur,o={}){
+  const {vol=.2,freq=2000,type="lowpass",to=null,bus=sfxBus,q=1,attack=.003}=o;
+  const t=ctx.currentTime+Math.max(0,at);
+  const src=ctx.createBufferSource();src.buffer=noiseBuf;src.loop=true;
+  const fl=ctx.createBiquadFilter();fl.type=type;fl.frequency.setValueAtTime(freq,t);fl.Q.value=q;if(to)fl.frequency.exponentialRampToValueAtTime(to,t+dur);
+  const g=ctx.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+attack);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  src.connect(fl);fl.connect(g);g.connect(bus);src.start(t);src.stop(t+dur+.05);
+ }
+ const fx={
+  click(){tone(1150,0,.035,{type:"square",vol:.035});},
+  pop(){tone(420,0,.12,{to:900,vol:.16});},
+  draw(){noise(0,.42,{type:"bandpass",freq:300,to:4500,vol:.22,q:.8,attack:.18});tone(N(88),.34,.7,{type:"triangle",vol:.16});tone(N(95),.4,.8,{vol:.1});},
+  correct(){[76,80,83,88].forEach((m,i)=>tone(N(m),i*.08,.38,{type:"triangle",vol:.22}));tone(N(100),.36,.6,{vol:.07});},
+  wrong(){tone(N(55),0,.3,{type:"triangle",vol:.24});tone(N(51),.24,.55,{type:"triangle",vol:.24});},
+  coinUp(){tone(N(83),0,.08,{type:"square",vol:.07});tone(N(88),.07,.28,{type:"square",vol:.07});},
+  coinDown(){tone(N(76),0,.08,{type:"square",vol:.06});tone(N(69),.07,.24,{type:"square",vol:.06});},
+  cash(){noise(0,.06,{type:"highpass",freq:3000,vol:.2});tone(N(91),.05,.5,{type:"triangle",vol:.15});tone(N(96),.13,.7,{type:"triangle",vol:.15});noise(.1,.3,{type:"bandpass",freq:6000,vol:.07,q:2});},
+  drumroll(d=1.1){const step=.045,hits=Math.floor(d/step);for(let i=0;i<hits;i++)noise(i*step,.06,{type:"bandpass",freq:1700,q:.7,vol:.04+.16*(i/hits)});tone(95,d,.3,{to:50,vol:.35});noise(d,.3,{type:"lowpass",freq:900,vol:.22});},
+  fanfare(){[[67,0],[72,.12],[76,.24],[79,.36]].forEach(([m,t])=>tone(N(m),t,.2,{type:"sawtooth",vol:.08,lp:2600}));[72,76,79,84].forEach(m=>tone(N(m),.5,1,{type:"sawtooth",vol:.06,lp:3000,vib:3}));noise(.5,.7,{type:"highpass",freq:7000,vol:.05});},
+  chime(){[79,84,88].forEach((m,i)=>tone(N(m),i*.1,.7,{vol:.15}));},
+  sneaky(){[64,63,62,61].forEach((m,i)=>tone(N(m-12),i*.14,.12,{type:"triangle",vol:.24}));tone(N(45),.62,.35,{type:"triangle",vol:.26});},
+  shield(){[84,88,91,96,100].forEach((m,i)=>tone(N(m),i*.05,.55,{type:"triangle",vol:.08}));noise(0,.7,{type:"highpass",freq:6000,vol:.05});},
+  swap(){noise(0,.3,{type:"bandpass",freq:500,to:4000,q:1.5,vol:.2});noise(.3,.3,{type:"bandpass",freq:4000,to:500,q:1.5,vol:.2});},
+  trombone(){[67,66,65].forEach((m,i)=>tone(N(m-12),i*.32,.32,{type:"sawtooth",vol:.12,lp:900}));tone(N(52),.96,.95,{type:"sawtooth",vol:.12,lp:900,vib:8});},
+  empty(){tone(N(72),0,.15,{vol:.18});tone(N(67),.18,.3,{vol:.18});},
+  versus(){tone(110,0,.45,{to:55,vol:.4});noise(0,.3,{type:"lowpass",freq:1500,vol:.25});[57,60,64].forEach(m=>tone(N(m),.05,.7,{type:"sawtooth",vol:.06,lp:1800}));},
+  party(){tone(N(72),0,.5,{type:"sawtooth",vol:.07,lp:2500,to:N(84)});[0,.1,.2,.3,.4].forEach((t,i)=>noise(t,.08,{type:"highpass",freq:4000+i*500,vol:.07}));[79,84,88].forEach((m,i)=>tone(N(m),.3+i*.1,.7,{vol:.14}));},
+  quake(){noise(0,1.5,{type:"lowpass",freq:180,vol:.5,attack:.08});tone(45,0,1.4,{to:28,vol:.4});},
+  thud(){tone(95,0,.4,{to:42,vol:.45});noise(0,.16,{type:"lowpass",freq:600,vol:.3});},
+  cheer(){noise(0,2.4,{type:"bandpass",freq:1400,q:.5,vol:.13,attack:.35});noise(0,2.2,{type:"highpass",freq:5000,vol:.04,attack:.2});}
+ };
+ function play(name,...args){
+  if(!init()||mode==="off"||!fx[name])return;
+  if(name==="pop"&&performance.now()-lastFx<200)return; // don't stack a pop on top of a bigger sound
+  if(name!=="click")lastFx=performance.now();
+  try{fx[name](...args);}catch(e){}
+ }
+ /* ---- background music: tiny step sequencer ---- */
+ const TRACKS={
+  lobby:{bpm:112,step(i,at,bus){
+   const prog=[[48,[60,64,67]],[45,[57,60,64]],[41,[57,60,65]],[43,[59,62,67]]];
+   const s=i%16,[root,ch]=prog[Math.floor(i/16)%4];
+   if([0,6,8,14].includes(s))tone(N(root),at,.22,{type:"triangle",vol:.3,bus});
+   if(s===4||s===12)ch.forEach(m=>tone(N(m),at,.16,{type:"triangle",vol:.06,bus}));
+   if(s%4===2)noise(at,.035,{type:"highpass",freq:8000,vol:.05,bus});
+   if([0,3,6,10,13].includes(s))tone(N(ch[(s+Math.floor(i/16))%3]+12),at,.13,{type:"square",vol:.025,lp:2800,bus});
+  }},
+  suspense:{bpm:100,step(i,at,bus){
+   const s=i%16,bar=Math.floor(i/16)%2;
+   if(s===0)[45,52].forEach(m=>tone(N(m+(bar?-1:0)),at,2.3,{type:"sawtooth",vol:.045,lp:600,attack:.3,bus}));
+   if(s===0||s===3||s===8||s===11)tone(62,at,.2,{to:38,vol:s%8===0?.42:.3,bus});
+   if(s%4===0)tone(2100,at,.02,{type:"square",vol:.018,bus});
+   if(s===14)tone(N(bar?80:81),at,.14,{type:"triangle",vol:.04,bus});
+  }},
+  victory:{bpm:126,step(i,at,bus){
+   const prog=[[48,[60,64,67]],[41,[60,65,69]],[43,[59,62,67]],[48,[60,64,67]]];
+   const s=i%16,[root,ch]=prog[Math.floor(i/16)%4];
+   if(s%4===0)tone(N(root),at,.2,{type:"triangle",vol:.3,bus});
+   if(s%4===2)ch.forEach(m=>tone(N(m),at,.14,{type:"triangle",vol:.06,bus}));
+   if(s%2===1)noise(at,.03,{type:"highpass",freq:8000,vol:.045,bus});
+   if(s%2===0)tone(N(ch[(s/2)%3]+(s>=8?24:12)),at,.12,{type:"square",vol:.025,lp:3200,bus});
+  }}
+ };
+ let cur={name:null,gain:null,timer:null,next:0,i:0};
+ function stopMusic(){
+  if(cur.timer)clearInterval(cur.timer);
+  if(cur.gain&&ctx){const g=cur.gain,t=ctx.currentTime;g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(g.gain.value,t);g.gain.linearRampToValueAtTime(0,t+.5);setTimeout(()=>{try{g.disconnect();}catch(e){}},700);}
+  cur={name:null,gain:null,timer:null,next:0,i:0};
+ }
+ function music(name){
+  if(!ctx){desired=name||null;return;}
+  if(name===cur.name)return;
+  stopMusic();if(!name||!TRACKS[name])return;
+  const tr=TRACKS[name],g=ctx.createGain();g.gain.setValueAtTime(0,ctx.currentTime);g.gain.linearRampToValueAtTime(1,ctx.currentTime+.8);g.connect(musicBus);
+  cur={name,gain:g,next:ctx.currentTime+.08,i:0,timer:null};
+  const stepDur=60/tr.bpm/4,me=cur;
+  me.timer=setInterval(()=>{
+   if(cur!==me)return;
+   if(me.next<ctx.currentTime-.5)me.next=ctx.currentTime+.05; // catch up after the tab was in the background
+   while(me.next<ctx.currentTime+.15){tr.step(me.i,me.next-ctx.currentTime,me.gain);me.next+=stepDur;me.i++;}
+  },30);
+ }
+ const LABELS={all:"🔊 Music + sounds",sfx:"🔉 Sounds only",off:"🔇 Muted"};
+ function cycle(){mode=mode==="all"?"sfx":mode==="sfx"?"off":"all";try{localStorage.setItem("dod-sound",mode);}catch(e){}levels(false);return LABELS[mode];}
+ return {init,play,music,cycle,label:()=>LABELS[mode]};
+})();
+const VIEW_MUSIC={boardView:"lobby",decisionView:"suspense",boxView:"suspense"};
+const STINGER={jackpot:"fanfare",royal:"fanfare",double:"fanfare",bonussteal:"sneaky",thief:"sneaky",shield:"shield",swap:"swap",bad:"trombone",blank:"empty",duel:"versus",challenge:"versus",alliance:"chime",party:"party",quake:"quake"};
+let endTimers=[];
+function clearEndTimers(){endTimers.forEach(clearTimeout);endTimers=[];}
+
+function showView(id){
+ if(id!=="endView"){clearEndTimers();stopConfetti();}
+ Sound.music(VIEW_MUSIC[id]||null);
+ document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+ $(id).classList.add("active");
+ previousView=id;
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function toast(message){
+ const t=$("toast");t.textContent=message;t.classList.add("show");
+ clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove("show"),2300);
+}
+function snapshot(){
+ lastAction={teams:teams.map(t=>({...t})),boxes:boxes.map(b=>({...b})),remainingCards:remainingCards.map(c=>({...c})),usedTurns,activeTeam,questions:questions.map(q=>({...q}))};
+}
+function undo(){
+ if(!lastAction){toast("Nothing to undo yet.");return;}
+ teams=lastAction.teams.map(t=>({...t}));boxes=lastAction.boxes.map(b=>({...b}));
+ remainingCards=lastAction.remainingCards.map(c=>({...c}));usedTurns=lastAction.usedTurns;activeTeam=lastAction.activeTeam;
+ questions=lastAction.questions.map(q=>({...q}));lastAction=null;
+ renderAll();showView("boardView");toast("Last score action undone.");
+}
+function currentTeam(){return teams[activeTeam];}
+function renderScores(targetId="scoreList"){
+ const el=$(targetId);if(!el)return;
+ el.innerHTML="";
+ const sorted=teams.map((t,i)=>({...t,index:i})).sort((a,b)=>b.score-a.score);
+ sorted.forEach((t,rank)=>{
+  const card=document.createElement("div");const isCur=t.index===activeTeam;card.className="score-card"+(isCur?" current":"");card.style.setProperty("--tc",t.color);if(!isCur)card.style.borderLeft=`calc(6*var(--u)) solid ${t.color}`;
+  card.innerHTML=`<div><div class="team-name"><span style="color:${t.color}">●</span> ${escapeHtml(t.name)}</div><div class="team-meta">${isCur?`<span class="now-badge">▶ NOW PLAYING</span>`:`RANK ${rank+1}`}${t.shield?" · 🛡️ SHIELD":""}</div></div><div class="score">${t.score}</div><div class="score-controls"><button data-change="-10" data-team="${t.index}">−10</button><button data-change="10" data-team="${t.index}">+10</button></div>`;
+  el.appendChild(card);
+ });
+ el.querySelectorAll("[data-change]").forEach(btn=>btn.addEventListener("click",()=>{
+  snapshot();const t=teams[Number(btn.dataset.team)];t.score=Math.max(0,t.score+Number(btn.dataset.change));Sound.play(Number(btn.dataset.change)>0?"coinUp":"coinDown");renderAll();
+ }));
+}
+function renderAll(){
+ $("gameName").value=gameTitle;$("pointsInput").value=correctPoints;$("stealInput").value=stealPoints;
+ $("roundPill").textContent=`ROUND ${Math.floor(usedTurns/Math.max(1,teams.length))+1}`;
+ renderBoard();renderScores();renderScores("decisionScores");renderScores("boxScores");renderScores("revealScores");renderUploads();saveGame();
+}
+function renderBoard(){
+ const grid=$("questionGrid");grid.innerHTML="";
+ const card=document.createElement("div");
+ card.className="draw-card";
+ card.innerHTML=`<div class="turn-chip" style="--tc:${currentTeam().color}">${escapeHtml(currentTeam().name)}'S TURN</div><div class="draw-symbol">🎲</div><div class="draw-title">MYSTERY QUESTION</div><div class="draw-subtitle">神祕題目</div><button class="btn primary draw-button" id="drawQuestionBtn">DRAW A QUESTION 抽題目</button>`;
+ grid.appendChild(card);
+ $("drawQuestionBtn").addEventListener("click",drawRandomQuestion);
+}
+let lastShown=-1;
+// Every question is shown once, in random order, before any question repeats.
+// When all have been shown, a new random round starts automatically (never repeating the last one back-to-back).
+function nextFromCycle(exclude=-1){
+ if(!questions.length)return -1;
+ let avail=questions.map((q,i)=>i).filter(i=>!questions[i].used&&i!==exclude);
+ if(!avail.length){
+  questions.forEach(q=>q.used=false);
+  avail=questions.map((q,i)=>i).filter(i=>i!==exclude&&(questions.length<2||i!==lastShown));
+  if(!avail.length)avail=questions.map((q,i)=>i);
+ }
+ const i=avail[Math.floor(Math.random()*avail.length)];
+ questions[i].used=true;lastShown=i;return i;
+}
+function drawRandomQuestion(){
+ if(!questions.length){
+  toast("Teacher: add question images in Game Setup.");
+  return;
+ }
+ startQuestion(nextFromCycle());
+}
+function pickBonusQuestion(){
+ const i=nextFromCycle(activeQuestion);return i<0?null:questions[i];
+}
+function renderQuestion(){
+ const q=questions[activeQuestion];if(!q)return;
+ $("questionTitle").textContent="Mystery Question 神祕題目";
+ $("activeTeamKicker").textContent=`${currentTeam().name}'S TURN`;$("activeTeamKicker").style.setProperty("--tc",currentTeam().color);
+ const frame=$("questionFrame");frame.innerHTML="";
+ const img=document.createElement("img");img.src=q.dataUrl;img.alt="Mystery question";frame.appendChild(img);
+ $("answerStatus").style.display="none";$("answerStatus").className="answer-status";revealedAnswer=false;
+}
+function startQuestion(i){
+ if(i<0)return;
+ activeQuestion=i;pendingSteal=false;renderQuestion();showView("questionView");Sound.play("draw");saveGame();
+}
+function startTurn(){ drawRandomQuestion(); }
+function answerCorrect(){
+ if(activeQuestion===null)return;
+ snapshot();questions[activeQuestion].used=true;currentTeam().score+=correctPoints;earnedThisTurn=correctPoints;usedTurns++;
+ $("answerStatus").style.display="block";$("answerStatus").className="answer-status good";$("answerStatus").textContent=`Correct! ${currentTeam().name} earns +${correctPoints} points.`;
+ $("decisionHeading").textContent=`${currentTeam().name} earned ${correctPoints} points!`;
+ $("bankSub").textContent=`Bank +${correctPoints} points. Safe choice.\n保留這次答對獲得的分數，安全不冒險。`;
+ Sound.play("correct");renderAll();showView("decisionView");
+}
+function answerIncorrect(){
+ if(activeQuestion===null)return;
+ snapshot();questions[activeQuestion].used=true;usedTurns++;
+ $("answerStatus").style.display="block";$("answerStatus").className="answer-status bad";$("answerStatus").textContent="Not quite. No points lost. Another team may try to steal.";
+ Sound.play("wrong");renderAll();
+ showModal("Offer a steal?","Choose another team to attempt the answer for "+stealPoints+" points, or continue to the next team.",[
+  {label:"Offer steal",className:"primary",action:()=>{closeModal();offerSteal();}},
+  {label:"No steal",action:()=>{closeModal();finishTurn();}}
+ ]);
+}
+function offerSteal(){
+ const opts=teams.map((t,i)=>({team:t,action:()=>{closeModal();snapshot();const target=teams[i];showModal("Did they answer correctly?",`${target.name} is attempting the steal. Is the answer correct?`,[
+  {label:"Correct +"+stealPoints,className:"primary",action:()=>{snapshot();target.score+=stealPoints;closeModal();Sound.play("coinUp");renderAll();toast(`${target.name} stole ${stealPoints} points.`);finishTurn();}},
+  {label:"Incorrect",className:"danger",action:()=>{closeModal();Sound.play("wrong");finishTurn();}}
+ ]);}})).filter((_,i)=>i!==activeTeam);
+ opts.push({label:"Skip steal",className:"ghost",action:()=>{closeModal();finishTurn();}});
+ showModal("Who will try the steal?", "Select one team. Each team may get only one attempt.",opts,"Choose a team");
+}
+function takeDeal(){
+ showView("revealView");Sound.play("cash");$("revealEmoji").textContent="🤝";$("revealTitle").textContent="DEAL ACCEPTED!";$("revealDescription").textContent=`${currentTeam().name} banks the guaranteed ${correctPoints} points and avoids the risk.`;$("revealTeam").textContent=currentTeam().name;renderScores("revealScores");
+}
+function goForMore(){if(!boxes.length||boxes.every(b=>b.used))makeBoxes();renderBoxes();showView("boxView");}
+function makeBoxes(){
+ const n=Number($("boxCountInput").value||20);
+ boxes=Array.from({length:n},(_,i)=>({id:i,used:false}));
+ remainingCards=[];
+ const pool=cardPool.map(c=>({...c}));
+ // Shuffle cards, then refill from a fresh shuffled deck if the game has more boxes than card types.
+ while(remainingCards.length<n){
+  const deck=pool.map(c=>({...c,used:false}));
+  while(deck.length){const i=Math.floor(Math.random()*deck.length);remainingCards.push(deck.splice(i,1)[0]);}
+ }
+ remainingCards=remainingCards.slice(0,n);
+}
+const BOX_COLS={8:4,10:5,12:4,16:4,20:5,25:5};
+const BOX_COLORS=[['#ff6b6b','#b4234b'],['#ffa94d','#d9601f'],['#f5c542','#b9800a'],['#4fd18f','#13805f'],['#4cc9e0','#1f6fa8'],['#6ea8ff','#4144c9'],['#a985ff','#6a3fc0'],['#ff7cc6','#b33384'],['#f08a8a','#9c3a5c'],['#93d42f','#3f7a1f']];
+function renderBoxes(){
+ $("boxTeamName").textContent=currentTeam().name;
+ const left=boxes.filter(b=>!b.used).length;
+ $("boxesLeft").textContent=`${left} BOX${left===1?"":"ES"} LEFT`;
+ const grid=$("boxGrid");grid.innerHTML="";
+ const cols=BOX_COLS[boxes.length]||Math.ceil(Math.sqrt(boxes.length));
+ grid.style.setProperty("--cols",cols);grid.style.setProperty("--rows",Math.ceil(boxes.length/cols));
+ boxes.forEach((b,i)=>{
+  const btn=document.createElement("button");btn.className="mystery"+(b.used?" used":"");btn.disabled=b.used;
+  const palette=BOX_COLORS[i%BOX_COLORS.length];
+  if(!b.used)btn.style.background=`linear-gradient(150deg,${palette[0]},${palette[1]})`;
+  btn.setAttribute("aria-label",b.used?`Box ${i+1}, opened`:`Box ${i+1}`);
+  btn.innerHTML=b.used?`<span class="num">✓</span><span class="lbl">OPENED</span>`:`<span class="num">${i+1}</span><span class="lbl">BOX</span>`;
+  btn.addEventListener("click",()=>revealBox(i));grid.appendChild(btn);
+ });
+ renderScores("boxScores");
+}
+let boxOpening=false;
+function revealBox(i){
+ if(boxes[i].used||boxOpening)return;
+ boxOpening=true;
+ const grid=$("boxGrid"),el=grid.children[i];
+ grid.classList.add("busy");if(el)el.classList.add("opening");
+ Sound.music(null);Sound.play("drumroll",1.1);
+ setTimeout(()=>{boxOpening=false;grid.classList.remove("busy");if(el)el.classList.remove("opening");revealBoxNow(i);},1150);
+}
+function revealBoxNow(i){
+ if(boxes[i].used)return;
+ let card=remainingCards.find(c=>!c.used);
+ if(!card){card={type:"blank",title:"EMPTY BOX！空箱！",emoji:"🫥",desc:"No bonus this time.\n這次沒有額外獎勵。",apply:()=>{}};}
+ Sound.play(STINGER[card.type]||"chime");
+ if(card.target){
+  const others=teams.map((t,index)=>({t,index})).filter(x=>x.index!==activeTeam);
+  showModal(`${card.emoji} ${card.title}`,card.desc,others.map(({t,index})=>({team:t,action:()=>{closeModal();openBox(i,card,index);}})).concat([{label:"Cancel",className:"ghost",action:()=>{closeModal();Sound.music("suspense");}}]),"Choose a team");
+  return;
+ }
+ openBox(i,card,null);
+}
+function openBox(i,card,targetIndex){
+ snapshot();boxes[i].used=true;card.used=true;applyCard(card,targetIndex);
+}
+function applyCard(card,targetIndex){
+ const team=currentTeam();let extra="";
+ const target=targetIndex!==null?teams[targetIndex]:null;
+ if(card.type==="duel"&&target){
+  showModal(`${card.emoji} ${team.name} vs ${target.name}`,"Rock, paper, scissors!\n剪刀、石頭、布！",[
+   {team,action:()=>{closeModal();team.score+=10;showResult(card,team,`${team.name} won the duel! +10 points.`);}},
+   {team:target,action:()=>{closeModal();target.score+=10;showResult(card,team,`${target.name} won the duel! +10 points.`);}}
+  ],"Who won?");
+  return;
+ }
+ if(card.type==="challenge"&&target){
+  const bq=pickBonusQuestion();Sound.music(null);
+  showModal(`${card.emoji} ${target.name}, answer this!`,"",[
+   {label:`✓ Correct (${target.name} +5)`,className:"primary",action:()=>{closeModal();target.score+=5;showResult(card,team,`${target.name} answered correctly! +5 points.`);}},
+   {label:`✕ Wrong (${team.name} +5)`,className:"danger",action:()=>{closeModal();team.score+=5;showResult(card,team,`${target.name} missed it. ${team.name} gets +5 points.`);}}
+  ],"",0,bq?bq.dataUrl:"");
+  return;
+ }
+ if(card.type==="alliance"&&target){
+  team.score+=8;target.score+=8;extra=`${team.name} and ${target.name} each get +8 points.`;
+ }else if(card.type==="party"){
+  teams.forEach(t=>t.score+=5);
+ }else if(card.type==="quake"){
+  const hit=[],blocked=[];
+  teams.forEach((t,i)=>{if(i===activeTeam)return;if(t.shield){t.shield=false;blocked.push(t.name);}else{t.score-=5;hit.push(t.name);}});
+  extra=blocked.length?`Shield blocked it: ${blocked.join(", ")}.`:"";
+ }else if((card.type==="thief" || card.type==="bonussteal") && targetIndex!==null){
+  if(target.shield){target.shield=false;extra=`${target.name}'s shield blocked the attack!`;if(card.type==="bonussteal")team.score+=5;}
+  else extra=card.apply(team,target)||"";
+ }else if(card.type==="swap" && targetIndex!==null){
+  extra=card.apply(team,target)||"";
+ }else{
+  if(card.type==="bad")team.score=Math.max(0,team.score-correctPoints);
+  else extra=card.apply(team)||"";
+ }
+ showResult(card,team,extra);
+}
+function showResult(card,team,extra){
+ if(card.target)Sound.play("coinUp");
+ // Keep score at zero or above.
+ teams.forEach(t=>t.score=Math.max(0,t.score));
+ $("revealEmoji").textContent=card.emoji;$("revealTitle").textContent=card.title;
+ $("revealDescription").textContent=card.desc+(extra?"\n\n"+extra:"");
+ $("revealTeam").textContent=team.name;renderAll();showView("revealView");
+}
+function finishTurn(){
+ activeTeam=(activeTeam+1)%teams.length;
+ activeQuestion=null;earnedThisTurn=0;pendingSteal=false;renderAll();showView("boardView");
+}
+let endFinish=null;
+function endGame(){
+ clearEndTimers();stopConfetti();
+ const sorted=teams.map((t,i)=>({...t,index:i})).sort((a,b)=>b.score-a.score);
+ sorted.forEach(t=>t.rank=1+sorted.filter(o=>o.score>t.score).length); // tied scores share a rank
+ const MEDAL={1:"🥇",2:"🥈",3:"🥉"};
+ const top=sorted.slice(0,Math.min(3,sorted.length));
+ const order=top.length===3?[top[1],top[0],top[2]]:top.length===2?[top[1],top[0]]:[top[0]];
+ const pod=$("podium");pod.innerHTML="";
+ order.forEach(t=>{const c=document.createElement("div");c.className=`pod-col rank-${Math.min(t.rank,5)}`;c.style.setProperty("--tc",t.color);c.dataset.place=sorted.indexOf(t);
+  c.innerHTML=`<div class="pod-info"><div class="pod-medal">${MEDAL[t.rank]||"🏅"}</div><div class="pod-name">${escapeHtml(t.name)}</div><div class="pod-score">${t.score} pts</div></div><div class="pod-bar"><span>${t.rank}</span></div>`;pod.appendChild(c);});
+ const rest=$("finalScores");rest.innerHTML="";rest.classList.remove("shown");
+ sorted.slice(3).forEach(t=>{const r=document.createElement("div");r.className="rest-item";r.style.setProperty("--tc",t.color);r.innerHTML=`<span class="r">#${t.rank}</span><span>${escapeHtml(t.name)}</span><span class="sc">${t.score}</span>`;rest.appendChild(r);});
+ $("endActions").classList.remove("shown");
+ const title=$("winnerTitle");title.classList.remove("pop");title.textContent="And the winner is…";
+ $("endHint").textContent="Tap anywhere to skip";
+ showView("endView");
+ const col=place=>pod.querySelector(`[data-place="${place}"]`);
+ const winners=sorted.filter(t=>t.rank===1);
+ const finalTitle=winners.length>1?"It's a tie! 🤝":`${winners[0].name} wins! 🏆`;
+ const later=(ms,fn)=>endTimers.push(setTimeout(fn,ms));
+ let done=false;
+ const finish=()=>{
+  if(done)return;done=true;clearEndTimers();endFinish=null;
+  pod.querySelectorAll(".pod-col").forEach(c=>c.classList.add("shown"));
+  title.textContent=finalTitle;title.classList.remove("pop");void title.offsetWidth;title.classList.add("pop");
+  $("endHint").textContent="";
+  Sound.play("fanfare");Sound.play("cheer");startConfetti(sorted.slice(0,3).map(t=>t.color).concat(["#ffd166","#ffffff"]));
+  endTimers.push(setTimeout(()=>{rest.classList.add("shown");$("endActions").classList.add("shown");Sound.music("victory");},1300));
+ };
+ endFinish=finish;
+ Sound.play("drumroll",1.2);
+ let t=1300;
+ if(col(2)){later(t,()=>{col(2).classList.add("shown");Sound.play("thud");});t+=1300;}
+ if(col(1)){later(t,()=>{col(1).classList.add("shown");Sound.play("thud");});t+=1100;}
+ later(t,()=>Sound.play("drumroll",1.7));
+ later(t+1800,finish);
+}
+/* ---- confetti ---- */
+let confettiRaf=null;
+function startConfetti(colors){
+ const cv=$("confetti"),cx=cv.getContext("2d");
+ if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+ cv.width=innerWidth;cv.height=innerHeight;
+ const parts=Array.from({length:220},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*.6,w:6+Math.random()*8,h:8+Math.random()*10,vx:-2+Math.random()*4,vy:2+Math.random()*4,r:Math.random()*6,vr:-.2+Math.random()*.4,c:colors[Math.floor(Math.random()*colors.length)]}));
+ const start=performance.now();cancelAnimationFrame(confettiRaf);
+ const frame=now=>{
+  cx.clearRect(0,0,cv.width,cv.height);
+  const age=now-start;
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.04;p.r+=p.vr;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.globalAlpha=Math.max(0,1-Math.max(0,age-4000)/1200);cx.fillStyle=p.c;cx.fillRect(-p.w/2,-p.h/2,p.w,p.h);cx.restore();});
+  if(age<5200)confettiRaf=requestAnimationFrame(frame);else cx.clearRect(0,0,cv.width,cv.height);
+ };
+ confettiRaf=requestAnimationFrame(frame);
+}
+function stopConfetti(){cancelAnimationFrame(confettiRaf);const cv=$("confetti");if(cv)cv.getContext("2d").clearRect(0,0,cv.width,cv.height);}
+function openSetup(){populateTeamInputs();renderUploads();showView("setupView");}
+function populateTeamInputs(){
+ const el=$("teamInputs");el.innerHTML="";
+ teams.forEach((t,i)=>{const wrap=document.createElement("div");wrap.className="setup-team";wrap.innerHTML=`<input aria-label="Team ${i+1} name" value="${escapeAttr(t.name)}" data-team-name="${i}" maxlength="24"><span style="display:grid;place-items:center;color:${t.color};font-weight:1000">●</span>`;el.appendChild(wrap);});
+}
+function renderUploads(){
+ const el=$("uploadList");if(!el)return;el.innerHTML="";
+ if(!questions.length){el.innerHTML='<p class="note">No question images uploaded yet.</p>';return;}
+ questions.forEach((q,i)=>{const row=document.createElement("div");row.className="upload-item";row.innerHTML=`<div class="thumb"><img src="${q.dataUrl}" alt=""></div><div><div class="file-name">${escapeHtml(q.fileName||q.label||`Question ${i+1}`)}</div><div class="file-sub">Question ${i+1}${q.used?" · Used":""}</div></div><button data-remove="${i}" aria-label="Remove question ${i+1}">✕</button>`;el.appendChild(row);});
+ el.querySelectorAll("[data-remove]").forEach(b=>b.addEventListener("click",()=>{questions.splice(Number(b.dataset.remove),1);renderAll();}));
+}
+function addTeam(){
+ if(teams.length>=8){toast("You can have up to 8 teams.");return;}
+ const n=teams.length+1;teams.push({name:`TEAM ${n}`,score:0,shield:false,color:TEAM_COLORS[(n-1)%TEAM_COLORS.length]});populateTeamInputs();renderAll();
+}
+function removeTeam(){
+ if(teams.length<=2){toast("Keep at least 2 teams.");return;}
+ const removed=teams.pop();activeTeam=Math.min(activeTeam,teams.length-1);populateTeamInputs();renderAll();toast(`${removed.name} removed.`);
+}
+function saveSetup(){
+ gameTitle=$("gameName").value.trim()||"DEAL OR DISASTER";correctPoints=Math.max(1,Number($("pointsInput").value)||10);stealPoints=Math.max(0,Number($("stealInput").value)||5);
+ document.querySelectorAll("[data-team-name]").forEach(input=>{const i=Number(input.dataset.teamName);if(teams[i])teams[i].name=input.value.trim()||`TEAM ${i+1}`;});
+ document.querySelector("h1").textContent=gameTitle;
+ if(Number($("boxCountInput").value)!==boxes.length)makeBoxes();
+ renderAll();showView("boardView");toast("Settings saved.");
+}
+let modalTimer=null;
+function showModal(title,text,buttons,prompt="",seconds=0,imageUrl=""){
+ clearInterval(modalTimer);
+ const media=$("modalMedia");media.innerHTML="";
+ document.querySelector(".modal").classList.toggle("wide",!!imageUrl);
+ $("modalText").style.display=text?"":"none";
+ if(imageUrl){const im=document.createElement("img");im.src=imageUrl;im.alt="Bonus question";media.appendChild(im);}
+ $("modalTitle").textContent=title;$("modalText").textContent=text;$("modalPrompt").textContent=prompt;
+ const actions=$("modalActions");actions.innerHTML="";
+ buttons.forEach(b=>{const btn=document.createElement("button");
+  if(b.team){
+   btn.className="btn team-btn";btn.style.setProperty("--team",b.team.color);
+   btn.innerHTML=`<span class="swatch"></span><span class="tinfo"><span>${escapeHtml(b.team.name)}</span><span class="tscore">${b.team.score} pts${b.team.shield?" · 🛡️":""}</span></span>`;
+  }else{btn.className="btn "+(b.className||"");btn.textContent=b.label;}
+  btn.addEventListener("click",b.action);actions.appendChild(btn);});
+ if(seconds>0){
+  let left=seconds;const pr=$("modalPrompt");pr.innerHTML=`<div class="modal-timer">${left}</div>`;
+  modalTimer=setInterval(()=>{left--;pr.innerHTML=`<div class="modal-timer">${left>0?left:"TIME'S UP!"}</div>`;if(left<=0)clearInterval(modalTimer);},1000);
+ }
+ $("modalBackdrop").classList.add("open");Sound.play("pop");
+}
+function closeModal(){clearInterval(modalTimer);$("modalBackdrop").classList.remove("open");}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function escapeAttr(s){return escapeHtml(s);}
+function resetGame(){
+ teams.forEach(t=>{t.score=0;t.shield=false;});questions.forEach(q=>q.used=false);usedTurns=0;activeTeam=0;activeQuestion=null;lastAction=null;makeBoxes();renderAll();showView("boardView");toast("Scores and used questions reset.");
+}
+function openZoom(){const q=questions[activeQuestion];if(!q)return;$("zoomImg").src=q.dataUrl;$("zoomOverlay").classList.add("open");}
+$("zoomBtn").addEventListener("click",openZoom);
+$("questionFrame").addEventListener("click",openZoom);
+$("zoomOverlay").addEventListener("click",()=>$("zoomOverlay").classList.remove("open"));
+document.addEventListener("keydown",e=>{if(e.key==="Escape")$("zoomOverlay").classList.remove("open");});
+$("setupBtn").addEventListener("click",openSetup);
+$("addTeamBtn").addEventListener("click",addTeam);
+$("removeTeamBtn").addEventListener("click",removeTeam);
+$("closeSetupBtn").addEventListener("click",()=>{renderAll();showView("boardView");});
+$("saveSetupBtn").addEventListener("click",saveSetup);
+$("undoBtn").addEventListener("click",undo);
+$("fullscreenBtn").addEventListener("click",async()=>{
+ const d=document,el=d.documentElement,on=d.fullscreenElement||d.webkitFullscreenElement;
+ try{
+  if(!on){if(el.requestFullscreen)await el.requestFullscreen();else if(el.webkitRequestFullscreen)el.webkitRequestFullscreen();else throw 0;}
+  else{if(d.exitFullscreen)await d.exitFullscreen();else if(d.webkitExitFullscreen)d.webkitExitFullscreen();}
+ }catch(e){toast("Full screen isn't available here. On iPad: Share → Add to Home Screen.");}
+});
+$("nextTeamBtn").addEventListener("click",finishTurn);
+$("backBoardBtn").addEventListener("click",()=>showView("boardView"));
+$("correctBtn").addEventListener("click",answerCorrect);
+$("incorrectBtn").addEventListener("click",answerIncorrect);
+$("bankBtn").addEventListener("click",takeDeal);
+$("riskBtn").addEventListener("click",goForMore);
+$("cancelRiskBtn").addEventListener("click",()=>showView("decisionView"));
+$("continueBtn").addEventListener("click",finishTurn);
+$("returnBoardBtn").addEventListener("click",()=>{activeQuestion=null;showView("boardView");});
+$("endGameBtn").addEventListener("click",endGame);
+$("endBoardBtn").addEventListener("click",()=>showView("boardView"));
+$("playAgainBtn").addEventListener("click",()=>{resetGame();});
+$("clearQuestionsBtn").addEventListener("click",()=>showModal("Remove all question images?","This removes the uploaded question pictures from the current game.",[
+ {label:"Remove all",className:"danger",action:()=>{questions=[];closeModal();renderAll();}},
+ {label:"Cancel",action:closeModal}
+]));
+$("resetScoresBtn").addEventListener("click",()=>showModal("Reset game?","This resets team scores, shields, used questions, and mystery boxes. Uploaded question pictures will remain.",[
+ {label:"Reset",className:"danger",action:()=>{closeModal();resetGame();showView("setupView");}},
+ {label:"Cancel",action:closeModal}
+]));
+$("questionUpload").addEventListener("change",async(e)=>{
+ const files=[...e.target.files].filter(f=>f.type.startsWith("image/"));
+ for(const file of files){
+  const dataUrl=await readImage(file);
+  questions.push({fileName:file.name,label:file.name.replace(/\.[^.]+$/,""),dataUrl,used:false});
+ }
+ e.target.value="";renderAll();toast(`${files.length} image(s) added.`);
+});
+function readImage(file){
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file);
+ });
+}
+document.addEventListener("pointerdown",()=>Sound.init(),{capture:true});
+document.addEventListener("keydown",()=>Sound.init(),{capture:true});
+document.addEventListener("touchend",()=>Sound.init(),{capture:true});
+document.addEventListener("click",e=>{const b=e.target.closest("button");if(b&&!b.classList.contains("mystery")&&b.id!=="soundBtn")Sound.play("click");},{capture:true});
+$("soundBtn").textContent=Sound.label();
+$("soundBtn").addEventListener("click",()=>{$("soundBtn").textContent=Sound.cycle();});
+$("endStage").addEventListener("click",e=>{if(endFinish&&!e.target.closest("button"))endFinish();});
+/* ================= AUTOSAVE =================
+   iPad Safari can reload a tab that was in the background. Questions and the game state
+   are saved on this device (IndexedDB) and restored on load. Nothing leaves the device. */
+const Store=(()=>{
+ let db=null;
+ function open(){return new Promise(res=>{try{const r=indexedDB.open("deal-or-disaster",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>{db=r.result;res(db);};r.onerror=()=>res(null);r.onblocked=()=>res(null);}catch(e){res(null);}});}
+ function put(k,v){if(!db)return;try{db.transaction("kv","readwrite").objectStore("kv").put(v,k);}catch(e){}}
+ function get(k){return new Promise(res=>{if(!db)return res(null);try{const r=db.transaction("kv").objectStore("kv").get(k);r.onsuccess=()=>res(r.result??null);r.onerror=()=>res(null);}catch(e){res(null);}});}
+ return {open,put,get};
+})();
+let storeReady=false,savedQSig=null;
+function saveGame(){
+ if(!storeReady)return;
+ const qsig=questions.length+":"+questions.map(q=>q.fileName+"|"+q.dataUrl.length).join(",");
+ if(qsig!==savedQSig){savedQSig=qsig;Store.put("questions",questions.map(q=>({fileName:q.fileName,label:q.label,dataUrl:q.dataUrl})));}
+ Store.put("state",{teams:teams.map(t=>({name:t.name,score:t.score,shield:!!t.shield,color:t.color})),activeTeam,usedTurns,correctPoints,stealPoints,gameTitle,lastShown,
+  used:questions.map(q=>!!q.used),boxCount:$("boxCountInput").value,boxes:boxes.map(b=>({id:b.id,used:!!b.used})),cards:remainingCards.map(c=>({type:c.type,used:!!c.used}))});
+}
+async function restoreGame(){
+ await Store.open();
+ const [qs,st]=await Promise.all([Store.get("questions"),Store.get("state")]);
+ try{
+  if(Array.isArray(qs))questions=qs.filter(q=>q&&q.dataUrl).map(q=>({...q,used:false}));
+  if(st){
+   if(Array.isArray(st.teams)&&st.teams.length>=2)teams=st.teams;
+   activeTeam=Math.min(Math.max(0,st.activeTeam||0),teams.length-1);usedTurns=st.usedTurns||0;
+   correctPoints=st.correctPoints||10;stealPoints=st.stealPoints??5;gameTitle=st.gameTitle||gameTitle;lastShown=st.lastShown??-1;
+   if(st.boxCount)$("boxCountInput").value=st.boxCount;
+   if(Array.isArray(st.used))st.used.forEach((u,i)=>{if(questions[i])questions[i].used=!!u;});
+   if(Array.isArray(st.boxes)&&Array.isArray(st.cards)&&st.boxes.length&&st.boxes.length===st.cards.length){
+    const cards=st.cards.map(c=>{const proto=cardPool.find(x=>x.type===c.type);return proto?{...proto,used:!!c.used}:null;});
+    if(cards.every(Boolean)){boxes=st.boxes;remainingCards=cards;}
+   }
+  }
+ }catch(e){}
+ savedQSig=questions.length+":"+questions.map(q=>q.fileName+"|"+q.dataUrl.length).join(",");
+ storeReady=true;
+ document.querySelector("h1").textContent=gameTitle;
+ renderAll();populateTeamInputs();
+ if(st&&(teams.some(t=>t.score>0)||questions.length))toast("Game restored.");
+}
+function initialize(){
+ makeBoxes();renderAll();populateTeamInputs();Sound.music("lobby");
+ restoreGame();
+}
+initialize();
+})();
+</script>
+</body>
+</html>
